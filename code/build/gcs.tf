@@ -1,33 +1,21 @@
+provider "google" {
+  project = "qwiklabs-gcp-01-e7c96f0ac8ee"
+  region  = "us-central1"
+}
 
-name: checkov
-on:
-  pull_request:
-  push:
-    branches:
-      - main    
-jobs:
-  scan:
-    runs-on: ubuntu-latest 
-    permissions:
-      contents: read # for actions/checkout to fetch code
-      security-events: write # for GitHub/codeql-action/upload-sarif to upload SARIF results
-     
-    steps:
-    - uses: actions/checkout@v2
-    
-    - name: Run checkov 
-      id: checkov
-      uses: bridgecrewio/checkov-action@master
-      with:
-        directory: code/
-        #soft_fail: true
-        
-    - name: Upload SARIF file
-      uses: GitHub/codeql-action/upload-sarif@v3
-      
-      # Results are generated only on a success or failure
-      # this is required since GitHub by default won't run the next step
-      # when the previous one has failed. Alternatively, enable soft_fail in checkov action.
-      if: success() || failure()
-      with:
-        sarif_file: results.sarif
+resource "google_storage_bucket" "example" {
+  name          = "demo-${random_id.rand_suffix.hex}"
+  location      = "us-central1"
+  force_destroy = true
+
+  uniform_bucket_level_access = false
+  public_access_prevention = "enforced"
+}
+
+resource "random_id" "rand_suffix" {
+  byte_length = 4
+}
+
+output "bucket_name" {
+  value = google_storage_bucket.example.name
+}
